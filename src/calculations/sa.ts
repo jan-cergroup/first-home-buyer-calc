@@ -1,4 +1,4 @@
-import type { FormState, FHOGResult, StampDutyBracket, StateCalculator } from '../types'
+import type { FormState, FHOGResult, StampDutyBracket, StampDutyConcessionResult, StateCalculator } from '../types'
 import { calculateFromBrackets, roundCurrency } from './utils'
 
 // SA general stamp duty brackets
@@ -13,6 +13,10 @@ const generalBrackets: StampDutyBracket[] = [
   { min: 300001, max: 500000, base: 11330, rate: 0.05 },
   { min: 500001, max: Infinity, base: 21330, rate: 0.055 },
 ]
+
+function calculateFullStampDuty(value: number): number {
+  return roundCurrency(calculateFromBrackets(value, generalBrackets))
+}
 
 export const sa: StateCalculator = {
   calculateStampDuty(inputs: FormState): number {
@@ -31,7 +35,7 @@ export const sa: StateCalculator = {
       }
     }
 
-    return roundCurrency(calculateFromBrackets(value, generalBrackets))
+    return calculateFullStampDuty(value)
   },
 
   calculateFHOG(inputs: FormState): FHOGResult {
@@ -69,5 +73,25 @@ export const sa: StateCalculator = {
       return roundCurrency(inputs.propertyValue * 0.07)
     }
     return 0
+  },
+
+  getStampDutyConcessionInfo(inputs: FormState): StampDutyConcessionResult {
+    if (!inputs.isFirstHomeBuyer || inputs.propertyPurpose !== 'home') {
+      return { status: 'fullRate', savings: 0, description: 'No stamp duty concession applies' }
+    }
+
+    const value = inputs.propertyValue
+
+    if (inputs.propertyType === 'newlyConstructed' || inputs.propertyType === 'vacantLand') {
+      const fullDuty = calculateFullStampDuty(value)
+      return { status: 'exempt', savings: fullDuty, description: 'FHB: Full stamp duty exemption for new homes and vacant land' }
+    }
+
+    if (value <= 650000) {
+      const fullDuty = calculateFullStampDuty(value)
+      return { status: 'exempt', savings: fullDuty, description: 'FHB: Full stamp duty exemption for established homes up to $650k' }
+    }
+
+    return { status: 'fullRate', savings: 0, description: 'Property value exceeds FHB concession threshold' }
   },
 }

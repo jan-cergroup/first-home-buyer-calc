@@ -1,4 +1,4 @@
-import type { FormState, FHOGResult, StampDutyBracket, StateCalculator } from '../types'
+import type { FormState, FHOGResult, StampDutyBracket, StampDutyConcessionResult, StateCalculator } from '../types'
 import { calculateFromBrackets, roundCurrency } from './utils'
 
 // ACT general stamp duty brackets (commercial/non-residential schedule)
@@ -31,6 +31,13 @@ function getHBCSIncomeThreshold(childrenCount: number): number {
   return base + childrenCount * perChild
 }
 
+function getFullDuty(inputs: FormState): number {
+  if (inputs.propertyPurpose === 'home') {
+    return roundCurrency(calculateFromBrackets(inputs.propertyValue, residentialBrackets))
+  }
+  return roundCurrency(calculateFromBrackets(inputs.propertyValue, generalBrackets))
+}
+
 export const act: StateCalculator = {
   calculateStampDuty(inputs: FormState): number {
     const value = inputs.propertyValue
@@ -38,7 +45,7 @@ export const act: StateCalculator = {
     // ACT HBCS: full stamp duty concession for eligible first home buyers
     if (inputs.isFirstHomeBuyer && inputs.propertyPurpose === 'home') {
       const incomeThreshold = getHBCSIncomeThreshold(inputs.childrenCount)
-      if (inputs.totalIncome <= incomeThreshold) {
+      if (inputs.yearlyIncome <= incomeThreshold) {
         return 0
       }
     }
@@ -55,7 +62,7 @@ export const act: StateCalculator = {
     return roundCurrency(calculateFromBrackets(value, generalBrackets))
   },
 
-  calculateFHOG(_inputs: FormState): FHOGResult {
+  calculateFHOG(): FHOGResult {
     // ACT replaced FHOG with HBCS — stamp duty concession is handled in calculateStampDuty
     return { eligible: false, grantAmount: 0, message: 'You are not eligible for a First Home Owners Grant.*' }
   },
@@ -79,5 +86,26 @@ export const act: StateCalculator = {
   calculateForeignSurcharge(): number | null {
     // ACT does not have a foreign purchaser surcharge in this context
     return null
+  },
+
+  getStampDutyConcessionInfo(inputs: FormState): StampDutyConcessionResult {
+    if (inputs.isFirstHomeBuyer && inputs.propertyPurpose === 'home') {
+      const incomeThreshold = getHBCSIncomeThreshold(inputs.childrenCount)
+      if (inputs.yearlyIncome <= incomeThreshold) {
+        const fullDuty = getFullDuty(inputs)
+        return {
+          status: 'exempt',
+          savings: fullDuty,
+          description: `HBCS: Full stamp duty exemption (income under $${(incomeThreshold / 1000).toFixed(0)}k threshold)`,
+        }
+      }
+    }
+
+    if (inputs.isEligiblePensioner && inputs.propertyPurpose === 'home') {
+      const fullDuty = getFullDuty(inputs)
+      return { status: 'exempt', savings: fullDuty, description: 'Pensioner concession: Full stamp duty exemption' }
+    }
+
+    return { status: 'fullRate', savings: 0, description: 'No stamp duty concession applies' }
   },
 }

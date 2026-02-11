@@ -1,4 +1,4 @@
-import type { FormState, FHOGResult, StampDutyBracket, StateCalculator } from '../types'
+import type { FormState, FHOGResult, StampDutyBracket, StampDutyConcessionResult, StateCalculator } from '../types'
 import { calculateFromBrackets, roundCurrency } from './utils'
 
 // TAS general stamp duty brackets
@@ -12,6 +12,10 @@ const generalBrackets: StampDutyBracket[] = [
   { min: 725001, max: Infinity, base: 27810, rate: 0.045 },
 ]
 
+function calculateFullStampDuty(value: number): number {
+  return roundCurrency(calculateFromBrackets(value, generalBrackets))
+}
+
 export const tas: StateCalculator = {
   calculateStampDuty(inputs: FormState): number {
     const value = inputs.propertyValue
@@ -24,7 +28,7 @@ export const tas: StateCalculator = {
       }
     }
 
-    return roundCurrency(calculateFromBrackets(value, generalBrackets))
+    return calculateFullStampDuty(value)
   },
 
   calculateFHOG(inputs: FormState): FHOGResult {
@@ -53,5 +57,22 @@ export const tas: StateCalculator = {
       return roundCurrency(inputs.propertyValue * 0.08)
     }
     return 0
+  },
+
+  getStampDutyConcessionInfo(inputs: FormState): StampDutyConcessionResult {
+    if (!inputs.isFirstHomeBuyer || inputs.propertyPurpose !== 'home') {
+      return { status: 'fullRate', savings: 0, description: 'No stamp duty concession applies' }
+    }
+
+    // TAS FHB: 50% discount mentioned in plan, but current code has full exemption for established ≤$750k
+    if (inputs.propertyType === 'established') {
+      const fullDuty = calculateFullStampDuty(inputs.propertyValue)
+      if (inputs.propertyValue <= 750000) {
+        return { status: 'exempt', savings: fullDuty, description: 'FHB: Full stamp duty exemption for established homes up to $750k' }
+      }
+    }
+
+    // For new/vacant land — no stamp duty concession in TAS (FHOG applies instead)
+    return { status: 'fullRate', savings: 0, description: 'No stamp duty concession for this property type' }
   },
 }

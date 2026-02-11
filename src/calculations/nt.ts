@@ -1,4 +1,4 @@
-import type { FormState, FHOGResult, StateCalculator } from '../types'
+import type { FormState, FHOGResult, StampDutyConcessionResult, StateCalculator } from '../types'
 import { roundCurrency } from './utils'
 
 // NT uses a different stamp duty formula:
@@ -70,5 +70,21 @@ export const nt: StateCalculator = {
   calculateForeignSurcharge(): number | null {
     // NT does not have a foreign purchaser surcharge
     return null
+  },
+
+  getStampDutyConcessionInfo(inputs: FormState): StampDutyConcessionResult {
+    const value = inputs.propertyValue
+
+    if (inputs.isFirstHomeBuyer && inputs.propertyPurpose === 'home' && value <= 650000) {
+      const fullDuty = calculateNTStampDuty(value)
+      return { status: 'exempt', savings: fullDuty, description: 'FHB: Full stamp duty exemption for properties up to $650k' }
+    }
+
+    if (inputs.isEligiblePensioner && inputs.propertyPurpose === 'home' && value <= 750000) {
+      const fullDuty = calculateNTStampDuty(value)
+      return { status: 'exempt', savings: fullDuty, description: 'Pensioner concession: Full stamp duty exemption up to $750k' }
+    }
+
+    return { status: 'fullRate', savings: 0, description: 'No stamp duty concession applies' }
   },
 }

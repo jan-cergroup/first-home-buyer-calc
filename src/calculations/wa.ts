@@ -1,4 +1,4 @@
-import type { FormState, FHOGResult, StampDutyBracket, StateCalculator } from '../types'
+import type { FormState, FHOGResult, StampDutyBracket, StampDutyConcessionResult, StateCalculator } from '../types'
 import { calculateFromBrackets, roundCurrency } from './utils'
 
 // WA general (non-residential) stamp duty brackets
@@ -92,5 +92,31 @@ export const wa: StateCalculator = {
       return roundCurrency(inputs.propertyValue * 0.07)
     }
     return 0
+  },
+
+  getStampDutyConcessionInfo(inputs: FormState): StampDutyConcessionResult {
+    // WA concessions not yet fully implemented per CLAUDE.md
+    if (!inputs.isFirstHomeBuyer || inputs.propertyPurpose !== 'home') {
+      return { status: 'fullRate', savings: 0, description: 'No stamp duty concession applies' }
+    }
+
+    const value = inputs.propertyValue
+    const fullDuty = roundCurrency(calculateFromBrackets(value, residentialBrackets))
+
+    if (value <= 430000) {
+      return { status: 'exempt', savings: fullDuty, description: 'FHB: Full stamp duty exemption for properties up to $430k' }
+    }
+
+    if (value <= 530000) {
+      const concessionRate = (530000 - value) / 100000
+      const actualDuty = roundCurrency(fullDuty * (1 - concessionRate))
+      return {
+        status: 'concession',
+        savings: fullDuty - actualDuty,
+        description: 'FHB: Sliding scale concession ($430k–$530k)',
+      }
+    }
+
+    return { status: 'fullRate', savings: 0, description: 'Property value exceeds FHB concession threshold' }
   },
 }

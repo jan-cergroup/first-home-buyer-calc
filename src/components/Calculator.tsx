@@ -4,19 +4,7 @@ import { CalculatorForm } from './CalculatorForm'
 import { CalculatorResults } from './CalculatorResults'
 
 export function Calculator() {
-  const {
-    formState,
-    results,
-    setPropertyPurpose,
-    setState,
-    setPropertyValue,
-    setTotalIncome,
-    setIsFirstHomeBuyer,
-    setIsForeignPurchaser,
-    setIsEligiblePensioner,
-    setPropertyType,
-    setChildrenCount,
-  } = useCalculator()
+  const { formState, results, updateField } = useCalculator()
 
   const stateConfig = STATE_FORM_CONFIG[formState.state]
 
@@ -25,17 +13,9 @@ export function Calculator() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
         <CalculatorForm
           formState={formState}
-          setPropertyPurpose={setPropertyPurpose}
-          setState={setState}
-          setPropertyValue={setPropertyValue}
-          setTotalIncome={setTotalIncome}
-          setIsFirstHomeBuyer={setIsFirstHomeBuyer}
-          setIsForeignPurchaser={setIsForeignPurchaser}
-          setIsEligiblePensioner={setIsEligiblePensioner}
-          setPropertyType={setPropertyType}
-          setChildrenCount={setChildrenCount}
+          updateField={updateField}
         />
-        <CalculatorResults results={results} stateConfig={stateConfig} />
+        <CalculatorResults results={results} stateConfig={stateConfig} formState={formState} />
       </div>
     </div>
   )

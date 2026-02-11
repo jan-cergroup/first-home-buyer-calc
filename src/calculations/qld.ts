@@ -1,4 +1,4 @@
-import type { FormState, FHOGResult, StampDutyBracket, StateCalculator } from '../types'
+import type { FormState, FHOGResult, StampDutyBracket, StampDutyConcessionResult, StateCalculator } from '../types'
 import { calculateFromBrackets, roundCurrency } from './utils'
 
 // QLD standard transfer duty brackets
@@ -26,8 +26,6 @@ export const qld: StateCalculator = {
     if (inputs.isFirstHomeBuyer && inputs.propertyPurpose === 'home') {
       if (inputs.propertyType === 'newlyConstructed' || inputs.propertyType === 'vacantLand') {
         // From 1 May 2025: full exemption for FHB new homes, no value cap
-        // Before that date: exemption up to $750k
-        // We'll use the current rules: full exemption for new homes
         return 0
       }
       // Established homes FHB: exempt up to $700k, sliding $700k-$800k
@@ -86,5 +84,37 @@ export const qld: StateCalculator = {
       return roundCurrency(inputs.propertyValue * 0.08)
     }
     return 0
+  },
+
+  getStampDutyConcessionInfo(inputs: FormState): StampDutyConcessionResult {
+    if (!inputs.isFirstHomeBuyer || inputs.propertyPurpose !== 'home') {
+      return { status: 'fullRate', savings: 0, description: 'No stamp duty concession applies' }
+    }
+
+    const value = inputs.propertyValue
+
+    if (inputs.propertyType === 'newlyConstructed' || inputs.propertyType === 'vacantLand') {
+      const fullDuty = roundCurrency(calculateFromBrackets(value, homeConcessionBrackets))
+      return { status: 'exempt', savings: fullDuty, description: 'FHB: Full stamp duty exemption for new homes' }
+    }
+
+    // Established homes
+    if (value <= 700000) {
+      const fullDuty = roundCurrency(calculateFromBrackets(value, homeConcessionBrackets))
+      return { status: 'exempt', savings: fullDuty, description: 'FHB: Full stamp duty exemption for established homes up to $700k' }
+    }
+
+    if (value <= 800000) {
+      const homeDuty = roundCurrency(calculateFromBrackets(value, homeConcessionBrackets))
+      const concessionRate = (800000 - value) / 100000
+      const actualDuty = roundCurrency(homeDuty * (1 - concessionRate))
+      return {
+        status: 'concession',
+        savings: homeDuty - actualDuty,
+        description: 'FHB: Sliding scale concession for established homes ($700k–$800k)',
+      }
+    }
+
+    return { status: 'fullRate', savings: 0, description: 'Property value exceeds FHB concession threshold' }
   },
 }

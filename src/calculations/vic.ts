@@ -1,4 +1,4 @@
-import type { FormState, FHOGResult, StampDutyBracket, StateCalculator } from '../types'
+import type { FormState, FHOGResult, StampDutyBracket, StampDutyConcessionResult, StateCalculator } from '../types'
 import { calculateFromBrackets, roundCurrency } from './utils'
 
 // VIC general (non-PPR / investment) stamp duty brackets
@@ -99,5 +99,33 @@ export const vic: StateCalculator = {
       return roundCurrency(inputs.propertyValue * 0.08)
     }
     return 0
+  },
+
+  getStampDutyConcessionInfo(inputs: FormState): StampDutyConcessionResult {
+    const value = inputs.propertyValue
+
+    if (inputs.isFirstHomeBuyer && inputs.propertyPurpose === 'home') {
+      const fullDuty = calculateGeneralStampDuty(value)
+
+      if (value <= 600000) {
+        return { status: 'exempt', savings: fullDuty, description: 'FHB: Full stamp duty exemption for properties up to $600k' }
+      }
+      if (value <= 750000) {
+        const concessionRate = (750000 - value) / 150000
+        const actualDuty = roundCurrency(fullDuty * (1 - concessionRate))
+        return {
+          status: 'concession',
+          savings: fullDuty - actualDuty,
+          description: 'FHB: Sliding scale concession ($600k–$750k)',
+        }
+      }
+    }
+
+    if (inputs.isEligiblePensioner && inputs.propertyPurpose === 'home' && value <= 750000) {
+      const fullDuty = calculateGeneralStampDuty(value)
+      return { status: 'exempt', savings: fullDuty, description: 'Pensioner concession: Full stamp duty exemption' }
+    }
+
+    return { status: 'fullRate', savings: 0, description: 'No stamp duty concession applies' }
   },
 }

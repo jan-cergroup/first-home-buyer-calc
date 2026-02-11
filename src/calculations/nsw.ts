@@ -1,4 +1,4 @@
-import type { FormState, FHOGResult, StampDutyBracket, StateCalculator } from '../types'
+import type { FormState, FHOGResult, StampDutyBracket, StampDutyConcessionResult, StateCalculator } from '../types'
 import { calculateFromBrackets, roundCurrency } from './utils'
 
 // NSW general stamp duty brackets
@@ -68,5 +68,30 @@ export const nsw: StateCalculator = {
       return roundCurrency(inputs.propertyValue * 0.09)
     }
     return 0
+  },
+
+  getStampDutyConcessionInfo(inputs: FormState): StampDutyConcessionResult {
+    if (!inputs.isFirstHomeBuyer || inputs.propertyPurpose !== 'home') {
+      return { status: 'fullRate', savings: 0, description: 'No stamp duty concession applies' }
+    }
+
+    const value = inputs.propertyValue
+    const fullDuty = calculateGeneralStampDuty(value)
+
+    if (value <= 800000) {
+      return { status: 'exempt', savings: fullDuty, description: 'FHBAS: Full stamp duty exemption for properties up to $800k' }
+    }
+
+    if (value <= 1000000) {
+      const concessionRate = (1000000 - value) / 200000
+      const actualDuty = roundCurrency(fullDuty * (1 - concessionRate))
+      return {
+        status: 'concession',
+        savings: fullDuty - actualDuty,
+        description: 'FHBAS: Sliding scale concession ($800k–$1M)',
+      }
+    }
+
+    return { status: 'fullRate', savings: 0, description: 'Property value exceeds FHBAS threshold' }
   },
 }
