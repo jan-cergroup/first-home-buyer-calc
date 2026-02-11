@@ -23,18 +23,6 @@ function SchemeStatusIcon({ eligible }: { eligible: boolean }) {
   )
 }
 
-function LmiNote({ lmiEstimate, fhdsEligible }: { lmiEstimate: number; fhdsEligible: boolean }) {
-  if (fhdsEligible) {
-    return <span className="text-accent text-sm font-medium">LMI waived (FHG)</span>
-  }
-  if (lmiEstimate === 0) {
-    return <span className="text-accent text-sm font-medium">No LMI required</span>
-  }
-  if (lmiEstimate === -1) {
-    return <span className="text-amber-600 text-sm font-medium">LMI — contact lender</span>
-  }
-  return <span className="text-amber-600 text-sm font-medium">LMI ~{formatCurrency(lmiEstimate)}</span>
-}
 
 export function CalculatorResults({ results, stateConfig, formState }: CalculatorResultsProps) {
   const [showAssumptions, setShowAssumptions] = useState(false)
@@ -42,57 +30,56 @@ export function CalculatorResults({ results, stateConfig, formState }: Calculato
   const loanAmount = results.loan.loanAmount
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      {/* Accent top bar */}
-      <div className="h-1 bg-accent" />
-
-      <div className="p-6 lg:p-8">
-        {/* Header */}
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-6">
-          Your First Home Estimate
-        </p>
-
-        {/* Hero: Monthly repayment */}
-        <div className="mb-6">
-          <p className="text-sm text-gray-500 mb-1">Monthly repayment</p>
-          <p className="text-3xl font-bold text-gray-900">
-            {formatCurrency(results.loan.monthlyRepayment)}
-            <span className="text-lg font-normal text-gray-400 ml-1">/mo</span>
+    <div className="space-y-4">
+      {/* Hero Card */}
+      <div className="bg-navy rounded-xl shadow-sm overflow-hidden">
+        <div className="p-6 lg:p-8">
+          <p className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-5">
+            Your First Home Estimate
           </p>
-          <p className="text-sm text-gray-400 mt-1">{formState.loanTerm}yr @ {formatPercentage(formState.interestRate)}</p>
-        </div>
 
-        {/* Two-column stats */}
-        <div className="grid grid-cols-2 gap-6 mb-6">
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Total upfront</p>
-            <p className="text-xl font-bold text-gray-900">{formatCurrency(results.upfrontCosts.total)}</p>
+          <p className="text-sm text-white/60 mb-1">Your monthly repayment</p>
+          <p className="text-4xl lg:text-5xl font-bold text-white">
+            {formatCurrency(results.loan.monthlyRepayment)}
+            <span className="text-xl font-normal text-white/40 ml-1">/mo</span>
+          </p>
+          <p className="text-sm text-white/40 mt-2">{formState.loanTerm}yr @ {formatPercentage(formState.interestRate)}</p>
+
+          <div className="border-t border-white/10 my-5" />
+
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <p className="text-sm text-white/50 mb-1">Total upfront</p>
+              <p className="text-xl font-bold text-white">{formatCurrency(results.upfrontCosts.total)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-white/50 mb-1">Loan amount</p>
+              <p className="text-xl font-bold text-white">{formatCurrency(loanAmount)}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Loan amount</p>
-            <p className="text-xl font-bold text-gray-900">{formatCurrency(loanAmount)}</p>
+
+          <div className="flex items-center gap-2 mt-4">
+            <span className="text-xs font-medium text-white/70 bg-white/10 rounded-full px-3 py-1">
+              LVR {formatPercentage(results.loan.lvr)}
+            </span>
+            <HeroBadgeLmi lmiEstimate={results.loan.lmiEstimate} fhdsEligible={results.fhds.eligible} />
           </div>
         </div>
+      </div>
 
-        {/* LVR line */}
-        <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-          <span>LVR {formatPercentage(results.loan.lvr)}</span>
-          <span className="text-gray-300">&middot;</span>
-          <LmiNote lmiEstimate={results.loan.lmiEstimate} fhdsEligible={results.fhds.eligible} />
+      {/* Borrowing power warning */}
+      {results.borrowingPower.estimatedMax < results.loan.loanAmount && results.loan.loanAmount > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+          <p className="text-sm text-amber-800">
+            Estimated max borrowing: <strong>{formatCurrency(results.borrowingPower.estimatedMax)}</strong>
+            <span className="text-xs ml-1">(at {formatPercentage(results.borrowingPower.assessmentRate)})</span>
+          </p>
         </div>
+      )}
 
-        {/* Borrowing power warning */}
-        {results.borrowingPower.estimatedMax < results.loan.loanAmount && results.loan.loanAmount > 0 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mt-4 mb-2">
-            <p className="text-sm text-amber-800">
-              Estimated max borrowing: <strong>{formatCurrency(results.borrowingPower.estimatedMax)}</strong>
-              <span className="text-xs ml-1">(at {formatPercentage(results.borrowingPower.assessmentRate)})</span>
-            </p>
-          </div>
-        )}
-
-        <hr className="border-gray-100 my-6" />
-
+      {/* Detail Card */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="p-6 lg:p-8">
         {/* Government Schemes */}
         <div className="mb-6">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Government Schemes</p>
@@ -185,6 +172,7 @@ export function CalculatorResults({ results, stateConfig, formState }: Calculato
           </button>
         </p>
       </div>
+      </div>
 
       {/* Assumptions modal */}
       {showAssumptions && (
@@ -221,6 +209,19 @@ export function CalculatorResults({ results, stateConfig, formState }: Calculato
       )}
     </div>
   )
+}
+
+function HeroBadgeLmi({ lmiEstimate, fhdsEligible }: { lmiEstimate: number; fhdsEligible: boolean }) {
+  if (fhdsEligible) {
+    return <span className="text-xs font-medium text-accent-light bg-accent/20 rounded-full px-3 py-1">LMI waived</span>
+  }
+  if (lmiEstimate === 0) {
+    return <span className="text-xs font-medium text-accent-light bg-accent/20 rounded-full px-3 py-1">No LMI</span>
+  }
+  if (lmiEstimate === -1) {
+    return <span className="text-xs font-medium text-amber-300 bg-amber-500/20 rounded-full px-3 py-1">LMI — contact lender</span>
+  }
+  return <span className="text-xs font-medium text-amber-300 bg-amber-500/20 rounded-full px-3 py-1">LMI ~{formatCurrency(lmiEstimate)}</span>
 }
 
 function CostRow({ label, value, isOffset }: { label: string; value: number; isOffset?: boolean }) {
