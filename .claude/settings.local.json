@@ -5,7 +5,11 @@
       "mcp__chrome-devtools__evaluate_script",
       "mcp__chrome-devtools__fill",
       "mcp__chrome-devtools__click",
-      "WebFetch(domain:www.wa.gov.au)"
+      "WebFetch(domain:www.wa.gov.au)",
+      "mcp__chrome-devtools__new_page",
+      "WebSearch",
+      "mcp__chrome-devtools__emulate",
+      "Skill(commit-commands:commit)"
     ]
   }
 }

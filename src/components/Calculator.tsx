@@ -9,12 +9,12 @@ export function Calculator() {
   const stateConfig = STATE_FORM_CONFIG[formState.state]
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 lg:p-10">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-        <CalculatorForm
-          formState={formState}
-          updateField={updateField}
-        />
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14">
+      <CalculatorForm
+        formState={formState}
+        updateField={updateField}
+      />
+      <div className="lg:self-start lg:sticky lg:top-6">
         <CalculatorResults results={results} stateConfig={stateConfig} formState={formState} />
       </div>
     </div>

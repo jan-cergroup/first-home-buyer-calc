@@ -1,9 +1,9 @@
 import type { FormState, PropertyPurpose, AustralianState, PropertyType, ChildrenCount, BuyerType, LoanTerm } from '../types'
-import { STATE_FORM_CONFIG, STATE_LOCATION_LABELS } from '../types'
-import { RadioGroup } from './RadioGroup'
+import { STATE_FORM_CONFIG, STATE_LOCATION_LABELS, AUSTRALIAN_STATES } from '../types'
+import { SelectInput } from './SelectInput'
+import { CheckboxInput } from './CheckboxInput'
 import { CurrencyInput } from './CurrencyInput'
 import { NumberInput } from './NumberInput'
-import { StateSelect } from './StateSelect'
 import { CollapsibleSection } from './CollapsibleSection'
 
 interface CalculatorFormProps {
@@ -16,172 +16,172 @@ export function CalculatorForm({ formState, updateField }: CalculatorFormProps) 
   const locationLabels = STATE_LOCATION_LABELS[formState.state]
 
   return (
-    <div className="space-y-5">
-      {/* Property section */}
-      <div className="space-y-4">
-        <RadioGroup
-          label="Property purpose"
-          options={[
-            { value: 'home' as PropertyPurpose, label: 'Home' },
-            { value: 'investment' as PropertyPurpose, label: 'Investment' },
-          ]}
-          value={formState.propertyPurpose}
-          onChange={(v) => updateField('propertyPurpose', v)}
-        />
+    <div className="space-y-10">
+      {/* Property Details */}
+      <div>
+        <h3 className="text-xl text-gray-900">Property Details</h3>
+        <div className="w-8 h-0.5 bg-accent mt-2 mb-6" />
 
-        <StateSelect value={formState.state} onChange={(v: AustralianState) => updateField('state', v)} />
+        <div className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+            <SelectInput
+              label="State"
+              value={formState.state}
+              options={AUSTRALIAN_STATES.map((s) => ({ value: s.value, label: s.label }))}
+              onChange={(v) => updateField('state', v as AustralianState)}
+            />
+            <SelectInput
+              label="Location"
+              value={formState.isMetro ? 'metro' : 'regional'}
+              options={[
+                { value: 'metro', label: locationLabels.metro },
+                { value: 'regional', label: locationLabels.regional },
+              ]}
+              onChange={(v) => updateField('isMetro', v === 'metro')}
+            />
+          </div>
 
-        <RadioGroup
-          label="Location"
-          options={[
-            { value: 'metro', label: locationLabels.metro },
-            { value: 'regional', label: locationLabels.regional },
-          ]}
-          value={formState.isMetro ? 'metro' : 'regional'}
-          onChange={(v) => updateField('isMetro', v === 'metro')}
-        />
+          <CurrencyInput
+            label="Property value"
+            value={formState.propertyValue}
+            onChange={(v) => updateField('propertyValue', v)}
+          />
 
-        <CurrencyInput
-          label="Property value"
-          value={formState.propertyValue}
-          onChange={(v) => updateField('propertyValue', v)}
-        />
-
-        <RadioGroup
-          label="Property type"
-          options={[
-            { value: 'established' as PropertyType, label: 'Established home' },
-            { value: 'newlyConstructed' as PropertyType, label: 'Newly constructed' },
-            { value: 'vacantLand' as PropertyType, label: 'Vacant land' },
-          ]}
-          value={formState.propertyType}
-          onChange={(v) => updateField('propertyType', v)}
-        />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+            <SelectInput
+              label="Property purpose"
+              value={formState.propertyPurpose}
+              options={[
+                { value: 'home', label: 'Home' },
+                { value: 'investment', label: 'Investment' },
+              ]}
+              onChange={(v) => updateField('propertyPurpose', v as PropertyPurpose)}
+            />
+            <SelectInput
+              label="Property type"
+              value={formState.propertyType}
+              options={[
+                { value: 'established', label: 'Established home' },
+                { value: 'newlyConstructed', label: 'Newly constructed' },
+                { value: 'vacantLand', label: 'Vacant land' },
+              ]}
+              onChange={(v) => updateField('propertyType', v as PropertyType)}
+            />
+          </div>
+        </div>
       </div>
 
-      <hr className="border-gray-200" />
+      {/* About You */}
+      <div>
+        <h3 className="text-xl text-gray-900">About You</h3>
+        <div className="w-8 h-0.5 bg-accent mt-2 mb-6" />
 
-      {/* About you section */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">About you</h3>
-
-        <RadioGroup
-          label="Buyer type"
-          options={[
-            { value: 'single' as BuyerType, label: 'Single' },
-            { value: 'couple' as BuyerType, label: 'Couple' },
-          ]}
-          value={formState.buyerType}
-          onChange={(v) => updateField('buyerType', v)}
-        />
-
-        <RadioGroup
-          label="Are you a first home buyer?"
-          options={[
-            { value: 'yes', label: 'Yes' },
-            { value: 'no', label: 'No' },
-          ]}
-          value={formState.isFirstHomeBuyer ? 'yes' : 'no'}
-          onChange={(v) => updateField('isFirstHomeBuyer', v === 'yes')}
-        />
-
-        {config.showForeignPurchaser && (
-          <RadioGroup
-            label="Are you a foreign purchaser?"
+        <div className="space-y-5">
+          <SelectInput
+            label="Buyer type"
+            value={formState.buyerType}
             options={[
-              { value: 'yes', label: 'Yes' },
-              { value: 'no', label: 'No' },
+              { value: 'single', label: 'Single' },
+              { value: 'couple', label: 'Couple' },
             ]}
-            value={formState.isForeignPurchaser ? 'yes' : 'no'}
-            onChange={(v) => updateField('isForeignPurchaser', v === 'yes')}
+            onChange={(v) => updateField('buyerType', v as BuyerType)}
           />
-        )}
 
-        {config.showPensioner && (
-          <RadioGroup
-            label="Are you an eligible pensioner?"
-            options={[
-              { value: 'yes', label: 'Yes' },
-              { value: 'no', label: 'No' },
-            ]}
-            value={formState.isEligiblePensioner ? 'yes' : 'no'}
-            onChange={(v) => updateField('isEligiblePensioner', v === 'yes')}
-          />
-        )}
+          <div className="space-y-3 pt-1">
+            <CheckboxInput
+              label="I am a first home buyer"
+              checked={formState.isFirstHomeBuyer}
+              onChange={(v) => updateField('isFirstHomeBuyer', v)}
+            />
 
-        {config.showNumberOfChildren && (
-          <RadioGroup
-            label="Number of children"
-            options={[
-              { value: '0', label: '0' },
-              { value: '1', label: '1' },
-              { value: '2', label: '2' },
-              { value: '3', label: '3' },
-              { value: '4', label: '4' },
-              { value: '5', label: '5+' },
-            ]}
-            value={String(formState.childrenCount)}
-            onChange={(v) => updateField('childrenCount', parseInt(v) as ChildrenCount)}
-          />
-        )}
+            {config.showForeignPurchaser && (
+              <CheckboxInput
+                label="I am a foreign purchaser"
+                checked={formState.isForeignPurchaser}
+                onChange={(v) => updateField('isForeignPurchaser', v)}
+              />
+            )}
+
+            {config.showPensioner && (
+              <CheckboxInput
+                label="I am an eligible pensioner"
+                checked={formState.isEligiblePensioner}
+                onChange={(v) => updateField('isEligiblePensioner', v)}
+              />
+            )}
+          </div>
+
+          {config.showNumberOfChildren && (
+            <SelectInput
+              label="Number of children"
+              value={String(formState.childrenCount)}
+              options={[
+                { value: '0', label: '0' },
+                { value: '1', label: '1' },
+                { value: '2', label: '2' },
+                { value: '3', label: '3' },
+                { value: '4', label: '4' },
+                { value: '5', label: '5+' },
+              ]}
+              onChange={(v) => updateField('childrenCount', parseInt(v) as ChildrenCount)}
+            />
+          )}
+        </div>
       </div>
 
-      <hr className="border-gray-200" />
-
-      {/* Your finances section */}
+      {/* Your Finances */}
       <CollapsibleSection title="Your Finances" defaultOpen>
-        <CurrencyInput
-          label="Deposit savings"
-          value={formState.depositSavings}
-          onChange={(v) => updateField('depositSavings', v)}
-        />
-
-        <CurrencyInput
-          label="Yearly income"
-          subtitle="gross, all purchasers"
-          value={formState.yearlyIncome}
-          onChange={(v) => updateField('yearlyIncome', v)}
-        />
-
-        <CurrencyInput
-          label="Monthly living expenses"
-          value={formState.monthlyExpenses}
-          onChange={(v) => updateField('monthlyExpenses', v)}
-        />
-
-        <CurrencyInput
-          label="HECS/HELP debt"
-          value={formState.hecsDebt}
-          onChange={(v) => updateField('hecsDebt', v)}
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+          <CurrencyInput
+            label="Deposit savings"
+            value={formState.depositSavings}
+            onChange={(v) => updateField('depositSavings', v)}
+          />
+          <CurrencyInput
+            label="Yearly income"
+            subtitle="gross, all purchasers"
+            value={formState.yearlyIncome}
+            onChange={(v) => updateField('yearlyIncome', v)}
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+          <CurrencyInput
+            label="Monthly expenses"
+            value={formState.monthlyExpenses}
+            onChange={(v) => updateField('monthlyExpenses', v)}
+          />
+          <CurrencyInput
+            label="HECS/HELP debt"
+            value={formState.hecsDebt}
+            onChange={(v) => updateField('hecsDebt', v)}
+          />
+        </div>
       </CollapsibleSection>
 
-      <hr className="border-gray-200" />
-
-      {/* Advanced settings */}
+      {/* Advanced Settings */}
       <CollapsibleSection title="Advanced Settings">
-        <NumberInput
-          label="Interest rate"
-          value={formState.interestRate}
-          onChange={(v) => updateField('interestRate', v)}
-          suffix="%"
-          min={0.1}
-          max={20}
-          step={0.1}
-        />
-
-        <RadioGroup
-          label="Loan term"
-          options={[
-            { value: '15', label: '15 yrs' },
-            { value: '20', label: '20 yrs' },
-            { value: '25', label: '25 yrs' },
-            { value: '30', label: '30 yrs' },
-          ]}
-          value={String(formState.loanTerm)}
-          onChange={(v) => updateField('loanTerm', parseInt(v) as LoanTerm)}
-        />
-
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+          <NumberInput
+            label="Interest rate"
+            value={formState.interestRate}
+            onChange={(v) => updateField('interestRate', v)}
+            suffix="%"
+            min={0.1}
+            max={20}
+            step={0.1}
+          />
+          <SelectInput
+            label="Loan term"
+            value={String(formState.loanTerm)}
+            options={[
+              { value: '15', label: '15 years' },
+              { value: '20', label: '20 years' },
+              { value: '25', label: '25 years' },
+              { value: '30', label: '30 years' },
+            ]}
+            onChange={(v) => updateField('loanTerm', parseInt(v) as LoanTerm)}
+          />
+        </div>
         <CurrencyInput
           label="Transaction fees"
           subtitle="conveyancing, inspections, etc."

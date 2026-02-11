@@ -4,7 +4,7 @@ import { FAQAccordion } from './components/FAQAccordion'
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       <header>
         {/* Logo bar */}
         <div className="bg-navy">
@@ -32,7 +32,7 @@ function App() {
       </header>
 
       {/* Calculator section */}
-      <main className="max-w-5xl mx-auto px-4 -mt-6 flex-1">
+      <main className="max-w-5xl mx-auto px-4 py-12 flex-1 w-full">
         <Calculator />
 
         {/* Info sections */}

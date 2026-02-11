@@ -7,13 +7,8 @@ interface CurrencyInputProps {
   subtitle?: string
 }
 
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-AU', {
-    style: 'currency',
-    currency: 'AUD',
-    maximumFractionDigits: 0,
-    minimumFractionDigits: 0,
-  }).format(value)
+function formatDisplay(value: number): string {
+  return new Intl.NumberFormat('en-AU').format(value)
 }
 
 export function CurrencyInput({ value, onChange, label, subtitle }: CurrencyInputProps) {
@@ -46,19 +41,24 @@ export function CurrencyInput({ value, onChange, label, subtitle }: CurrencyInpu
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+      <label className="block text-sm font-bold text-gray-900 mb-1">
         {label}
         {subtitle && <span className="text-gray-400 font-normal ml-1">{subtitle}</span>}
       </label>
-      <div className="relative">
+      <div
+        className={`flex items-center border-0 border-b-2 transition-colors ${
+          isFocused ? 'border-accent' : 'border-gray-300'
+        }`}
+      >
+        <span className="text-gray-400 text-base shrink-0">$</span>
         <input
           type="text"
           inputMode="numeric"
-          value={isFocused ? inputValue : formatCurrency(value)}
+          value={isFocused ? inputValue : formatDisplay(value)}
           onFocus={handleFocus}
           onBlur={handleBlur}
           onChange={handleChange}
-          className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-base focus:outline-none focus:border-accent transition-colors"
+          className="w-full py-2 pl-1 text-base bg-transparent outline-none border-none"
         />
       </div>
     </div>
