@@ -41,7 +41,13 @@ Australian first home buyer calculator (FHOG Calculator clone of loans.com.au/ca
 - Stamp duty uses tiered bracket tables processed by `calculateFromBrackets()` in utils.ts
 - Each state module exports a single `StateCalculator` object with 5 methods: `calculateStampDuty`, `calculateFHOG`, `calculateMortgageRegistrationFee`, `calculateLandTransferFee`, `calculateForeignSurcharge`
 - Currency formatting uses `Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' })`
-- Accent color: `#E91E8C` (pink/magenta), navy: `#1B1464` — defined as Tailwind theme tokens in `src/index.css`
+- Color scheme: forest green — defined as Tailwind theme tokens in `src/index.css`:
+  - Accent: `#2E7D52` (forest green), light: `#E6F4EC`, dark: `#236841`
+  - Navy: `#1A3329` (dark forest), light: `#264D3A`
+- Domain: `firsthomebuyercalculator.com.au`
+- Favicon: `public/favicon.svg` (house icon in accent green)
+- Header: logo bar (house icon + wordmark) + hero section
+- Footer: copyright + disclaimer
 
 ### Dynamic form fields per state
 
